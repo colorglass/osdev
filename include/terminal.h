@@ -3,15 +3,6 @@
 
 #include <stdint.h>
 
-#define VGA_TEXT_BUFFER 0xB8000
-#define CRT_ADDR_PORT 0x3D4
-#define CRT_DATA_PORT 0x3D5
-#define CURSOR_HIGH_LOCATION_INDEX 0x0E
-#define CURSOR_LOW_LOCATION_INDEX 0x0F
-
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
-
 enum vga_color
 {
 	VGA_COLOR_BLACK = 0,

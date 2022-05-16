@@ -2,6 +2,15 @@
 #include "io.h"
 #include "string.h"
 
+#define VGA_TEXT_BUFFER 0xB8000
+#define CRT_ADDR_PORT 0x3D4
+#define CRT_DATA_PORT 0x3D5
+#define CURSOR_HIGH_LOCATION_INDEX 0x0E
+#define CURSOR_LOW_LOCATION_INDEX 0x0F
+#define VGA_WIDTH 80
+#define VGA_HEIGHT 25
+#define VGA_TEXT_NUM (VGA_WIDTH) * (VGA_HEIGHT)
+
 static uint8_t terminal_row;
 static uint8_t terminal_column;
 static uint8_t terminal_color;
@@ -44,7 +53,7 @@ void terminal_putchar(char c)
         terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
         if (++terminal_column >= VGA_WIDTH)
         {
-            terminal_color = 0;
+            terminal_column = 0;
             if (++terminal_row >= VGA_HEIGHT)
             {
                 terminal_backword(1);
@@ -79,7 +88,6 @@ void terminal_initial()
     terminal_buffer = (uint16_t *)VGA_TEXT_BUFFER;
 
     clear_all();
-    set_cursor(terminal_column, terminal_row);
 }
 
 void set_cursor(uint8_t col, uint8_t row)
@@ -116,18 +124,21 @@ void terminal_backword_line(uint8_t step, uint8_t start, uint8_t end)
 
     memcpy(&terminal_buffer[(start - step) * VGA_WIDTH],
            &terminal_buffer[start * VGA_WIDTH],
-           (end - start + 1) * VGA_WIDTH);
+           (end - start + 1) * VGA_WIDTH * 2);
 }
 
 void clear_area(uint8_t start, uint8_t end)
 {
-    memset(&terminal_buffer[start * VGA_WIDTH],
-           '\0',
-           (end - start + 1) * VGA_WIDTH);
+    for (int i = start * VGA_WIDTH; i < (end + 1) * VGA_WIDTH; i++)
+    {
+        terminal_buffer[i] = vga_entry(' ', terminal_color);
+    }
 }
 
 void clear_all()
 {
     clear_area(0, VGA_HEIGHT - 1);
-    set_cursor(0, 0);
+    terminal_column = 0;
+    terminal_row = 0;
+    set_cursor(terminal_column, terminal_row);
 }

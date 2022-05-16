@@ -10,10 +10,6 @@ void kernel_main(void)
 
 	terminal_writestring("Hello, kernel World!\nHello, my world!");
 
-	terminal_backword(1);
-
-	clear_all();
-
 	while (1)
 		;
 }
