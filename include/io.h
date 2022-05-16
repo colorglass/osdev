@@ -14,6 +14,8 @@
     _v;                           \
 })
 
+#define io_wait asm("jmp 1f\n1:\tjmp 1f\n1:");
+
 #define outw(port, value) \
     asm("outw %%ax, %%dx" ::"a"(value), "d"(port));
 

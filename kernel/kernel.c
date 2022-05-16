@@ -2,18 +2,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <terminal.h>
+#include "terminal.h"
+#include "interrupt.h"
 
 void kernel_main(void)
 {
 	terminal_initial();
 
-	terminal_writestring("Hello, kernel World!\nHello, my world!");
+	terminal_writestring("Hello, kernel World!\nHello, my world!\n");
 
-	terminal_backword(1);
-
-	clear_all();
-
+	IDT_init();
 	while (1)
 		;
 }
