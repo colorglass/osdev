@@ -27,6 +27,8 @@ void keyboard_handler(void)
     if (status & 0x01)
     {
         scancode = inb(0x60);
+        if (scancode > 58)
+            return;
         char letter = sc_ascii[(int)scancode];
         char str[2] = {letter, '\0'};
         terminal_writestring(str);

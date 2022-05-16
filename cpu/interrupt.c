@@ -28,11 +28,6 @@ typedef struct
 static IDT_entry IDT[IDT_SIZE];
 static IDT_register IDT_reg;
 
-void ignore_handler()
-{
-    asm volatile("iret");
-}
-
 void PIC_remap(int offset1, int offset2)
 {
     uint8_t a1, a2;
@@ -123,7 +118,7 @@ void IDT_init(void)
     {
         set_IDT_entry(i, (uint32_t)ignore_handler);
     }
-    set_IDT_entry(IRQ1, (uint32_t)keyboard_handler);
+    set_IDT_entry(IRQ1, (uint32_t)keyboard_handler_wrapper);
     set_IDT();
     IRQ_clear_mask(IRQ1);
 }

@@ -20,6 +20,9 @@
 #define IRQ14 46
 #define IRQ15 47
 
+extern void ignore_handler();
+extern void keyboard_handler_wrapper();
+
 #define IRQ_MASK_ALL()     \
     outb(PIC1_DATA, 0xff); \
     outb(PIC2_DATA, 0xff);

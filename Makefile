@@ -2,7 +2,7 @@ GCC = i686-elf-gcc
 GCCFLAGS = -ffreestanding -nostdlib -Iinclude
 GDB = gdb
 
-C_SOURCE = ${wildcard device/*.c}
+C_SOURCE = ${wildcard device/*.c device/*.s cpu/*.c cpu/*.s}
 
 all: build/myos.bin
 
