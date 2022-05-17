@@ -18,4 +18,4 @@ static inline void *memset(void *s, char c, int count)
 
 void int_to_ascii(int n, char str[]);
 void reverse(char s[]);
-int strlen(char s[]);
+int strlen(const char s[]);
