@@ -1,4 +1,4 @@
-extern inline void *memcpy(void *dest, const void *src, int n)
+static inline void *memcpy(void *dest, const void *src, int n)
 {
     asm("cld\n\t"
         "rep\n\t"
@@ -7,7 +7,7 @@ extern inline void *memcpy(void *dest, const void *src, int n)
     return dest;
 }
 
-extern inline void *memset(void *s, char c, int count)
+static inline void *memset(void *s, char c, int count)
 {
     asm("cld\n\t"
         "rep\n\t"
@@ -15,3 +15,7 @@ extern inline void *memset(void *s, char c, int count)
         "D"(s), "c"(count));
     return s;
 }
+
+void int_to_ascii(int n, char str[]);
+void reverse(char s[]);
+int strlen(char s[]);

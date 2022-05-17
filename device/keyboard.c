@@ -1,7 +1,13 @@
 #include <stdint.h>
 
-#include "io.h"
-#include "terminal.h"
+#include "sys/io.h"
+#include "cpu/interrupt.h"
+#include "device/terminal.h"
+
+#define BACKSPACE 0x0E
+#define ENTER 0x1C
+
+#define SC_MAX 57
 
 const char *sc_name[] = {"ERROR", "Esc", "1", "2", "3", "4", "5", "6",
                          "7", "8", "9", "0", "-", "=", "Backspace", "Tab", "Q", "W", "E",
@@ -15,22 +21,31 @@ const char sc_ascii[] = {'?', '?', '1', '2', '3', '4', '5', '6',
                          'H', 'J', 'K', 'L', ';', '\'', '`', '?', '\\', 'Z', 'X', 'C', 'V',
                          'B', 'N', 'M', ',', '.', '/', '?', '?', '?', ' '};
 
-static char keybuffer[256];
-
-void keyboard_handler(void)
+static void keyboard_callback(registers_t *regs)
 {
-    uint8_t status;
-    uint8_t scancode;
+    /* The PIC leaves us the scancode in port 0x60 */
+    uint8_t scancode = inb(0x60);
 
-    outb(0x20, 0x20);
-    status = inb(0x64);
-    if (status & 0x01)
+    if (scancode > SC_MAX)
+        return;
+    if (scancode == BACKSPACE)
     {
-        scancode = inb(0x60);
-        if (scancode > 58)
-            return;
+        terminal_backspace();
+    }
+    else if (scancode == ENTER)
+    {
+        terminal_writestring("\n");
+    }
+    else
+    {
         char letter = sc_ascii[(int)scancode];
         char str[2] = {letter, '\0'};
         terminal_writestring(str);
     }
+}
+
+void keyboard_init()
+{
+    register_interrupt_handler(IRQ1, keyboard_callback);
+    IRQ_clear_mask(IRQ1);
 }

@@ -1,5 +1,5 @@
-#if !defined(_INTRRUPT_H_)
-#define _INTRRUPT_H_
+#if !defined(_PIC_H_)
+#define _PIC_H_
 
 #include <stdint.h>
 
@@ -20,18 +20,13 @@
 #define IRQ14 46
 #define IRQ15 47
 
-extern void ignore_handler();
-extern void keyboard_handler_wrapper();
-
 #define IRQ_MASK_ALL()     \
     outb(PIC1_DATA, 0xff); \
     outb(PIC2_DATA, 0xff);
 
 void PIC_init(void);
 void PIC_remap(int offset1, int offset2);
-void IRQ_set_mask(unsigned char IRQ);
-void IRQ_clear_mask(unsigned char IRQ);
+void IRQ_set_mask(uint8_t IRQ);
+void IRQ_clear_mask(uint8_t IRQ);
 
-void IDT_init(void);
-
-#endif // _INTRRUPT_H_
+#endif // _PIC_H_

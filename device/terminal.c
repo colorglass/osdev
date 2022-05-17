@@ -1,6 +1,8 @@
-#include "terminal.h"
-#include "io.h"
 #include "string.h"
+#include "device/terminal.h"
+#include "sys/io.h"
+
+#define index(col, row) ((col) + (row)*VGA_WIDTH)
 
 static uint8_t terminal_row;
 static uint8_t terminal_column;
@@ -24,8 +26,7 @@ void terminal_setcolor(uint8_t color)
 
 void terminal_putentryat(char c, uint8_t color, uint8_t col, uint8_t row)
 {
-    int index = col + row * VGA_WIDTH;
-    terminal_buffer[index] = vga_entry(c, color);
+    terminal_buffer[index(col, row)] = vga_entry(c, color);
 }
 
 void terminal_putchar(char c)
@@ -92,6 +93,24 @@ void set_cursor(uint8_t col, uint8_t row)
     outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 }
 
+void terminal_backspace()
+{
+    if (terminal_column == 0)
+    {
+        if (terminal_row != 0)
+        {
+            terminal_column = VGA_WIDTH - 1;
+            terminal_row--;
+        }
+    }
+    else
+    {
+        terminal_column--;
+    }
+    terminal_putentryat(0x08, terminal_color, terminal_column, terminal_row);
+    set_cursor(terminal_column, terminal_row);
+}
+
 void terminal_backword(uint8_t step)
 {
     terminal_backword_line(step, 0, VGA_HEIGHT - 1);
@@ -121,9 +140,10 @@ void terminal_backword_line(uint8_t step, uint8_t start, uint8_t end)
 
 void clear_area(uint8_t start, uint8_t end)
 {
-    memset(&terminal_buffer[start * VGA_WIDTH],
-           '\0',
-           (end - start + 1) * VGA_WIDTH);
+    for (int i = start * VGA_WIDTH; i < (end + 1) * VGA_WIDTH; i++)
+    {
+        terminal_buffer[i] = vga_entry(' ', terminal_color);
+    }
 }
 
 void clear_all()

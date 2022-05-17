@@ -40,6 +40,7 @@ void terminal_putchar(char c);
 void terminal_write(const char *data, int size);
 void terminal_writestring(const char *data);
 void terminal_initial();
+void terminal_backspace();
 void terminal_backword(uint8_t step);
 void terminal_backword_line(uint8_t step, uint8_t start, uint8_t end);
 void set_cursor(uint8_t col, uint8_t row);

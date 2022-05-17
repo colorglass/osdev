@@ -2,8 +2,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "terminal.h"
-#include "interrupt.h"
+#include "cpu/interrupt.h"
+#include "device/terminal.h"
+#include "device/keyboard.h"
 
 void kernel_main(void)
 {
@@ -11,7 +12,10 @@ void kernel_main(void)
 
 	terminal_writestring("Hello, kernel World!\nHello, my world!\n");
 
-	IDT_init();
+	interrupt_init();
+
+	keyboard_init();
+
 	while (1)
 		;
 }
