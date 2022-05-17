@@ -16,8 +16,8 @@ const char *sc_name[] = {"ERROR", "Esc", "1", "2", "3", "4", "5", "6",
                          "LShift", "\\", "Z", "X", "C", "V", "B", "N", "M", ",", ".",
                          "/", "RShift", "Keypad *", "LAlt", "Spacebar"};
 const char sc_ascii[] = {'?', '?', '1', '2', '3', '4', '5', '6',
-                         '7', '8', '9', '0', '-', '=', '?', '?', 'Q', 'W', 'E', 'R', 'T', 'Y',
-                         'U', 'I', 'O', 'P', '[', ']', '?', '?', 'A', 'S', 'D', 'F', 'G',
+                         '7', '8', '9', '0', '-', '=', '\b', '\t', 'Q', 'W', 'E', 'R', 'T', 'Y',
+                         'U', 'I', 'O', 'P', '[', ']', '\n', '?', 'A', 'S', 'D', 'F', 'G',
                          'H', 'J', 'K', 'L', ';', '\'', '`', '?', '\\', 'Z', 'X', 'C', 'V',
                          'B', 'N', 'M', ',', '.', '/', '?', '?', '?', ' '};
 
@@ -28,19 +28,10 @@ static void keyboard_callback(registers_t *regs)
 
     if (scancode > SC_MAX)
         return;
-    if (scancode == BACKSPACE)
-    {
-        terminal_backspace();
-    }
-    else if (scancode == ENTER)
-    {
-        terminal_writestring("\n");
-    }
     else
     {
         char letter = sc_ascii[(int)scancode];
-        char str[2] = {letter, '\0'};
-        terminal_writestring(str);
+        terminal_write(&letter, 1);
     }
 }
 

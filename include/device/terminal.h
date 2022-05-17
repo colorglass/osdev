@@ -3,12 +3,6 @@
 
 #include <stdint.h>
 
-#define VGA_TEXT_BUFFER 0xB8000
-#define CRT_ADDR_PORT 0x3D4
-#define CRT_DATA_PORT 0x3D5
-#define CURSOR_HIGH_LOCATION_INDEX 0x0E
-#define CURSOR_LOW_LOCATION_INDEX 0x0F
-
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 
@@ -32,17 +26,18 @@ enum vga_color
 	VGA_COLOR_WHITE = 15,
 };
 
-void clear_area(uint8_t start, uint8_t end);
-void clear_all();
+void terminal_clear_area(uint8_t start, uint8_t end);
+void terminal_clear();
 void terminal_setcolor(uint8_t color);
 void terminal_putentryat(char c, uint8_t color, uint8_t col, uint8_t row);
 void terminal_putchar(char c);
 void terminal_write(const char *data, int size);
 void terminal_writestring(const char *data);
 void terminal_initial();
-void terminal_backspace();
-void terminal_backword(uint8_t step);
-void terminal_backword_line(uint8_t step, uint8_t start, uint8_t end);
-void set_cursor(uint8_t col, uint8_t row);
+void terminal_scroll_up_line(uint8_t step, uint8_t start, uint8_t end);
+void terminal_scroll_up();
+void terminal_scroll_down();
+void set_cursor(uint16_t pos);
+uint16_t get_cursor();
 
 #endif
