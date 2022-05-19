@@ -8,6 +8,15 @@
 #define CURSOR_POS_HIGH_INDEX 0x0E
 #define CURSOR_POS_LOW_INDEX 0x0F
 
+#define VGA_TEXT_BUFFER 0xB8000
+#define CRT_ADDR_PORT 0x3D4
+#define CRT_DATA_PORT 0x3D5
+#define CURSOR_HIGH_LOCATION_INDEX 0x0E
+#define CURSOR_LOW_LOCATION_INDEX 0x0F
+#define VGA_WIDTH 80
+#define VGA_HEIGHT 25
+#define VGA_TEXT_NUM (VGA_WIDTH) * (VGA_HEIGHT)
+
 static uint8_t terminal_row;
 static uint8_t terminal_column;
 static uint8_t terminal_color;
@@ -211,4 +220,6 @@ void terminal_clear_area(uint8_t start, uint8_t end)
 void terminal_clear()
 {
     terminal_clear_area(0, VGA_HEIGHT - 1);
+    terminal_column = 0;
+    terminal_row = 0;
 }
