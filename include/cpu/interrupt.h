@@ -5,6 +5,9 @@
 
 #include "device/pic.h"
 
+#define cli() asm volatile("cli");
+#define sti() asm volatile("sti");
+
 #define IDT_SIZE 256
 
 /* ISRs reserved for CPU exceptions */

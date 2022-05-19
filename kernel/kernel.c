@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "cpu/interrupt.h"
+#include "device/timer.h"
 #include "device/terminal.h"
 #include "device/keyboard.h"
 
@@ -15,6 +16,8 @@ void kernel_main(void)
 	interrupt_init();
 
 	keyboard_init();
+
+	timer_init(1000);
 
 	while (1)
 		;
