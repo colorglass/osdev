@@ -1,6 +1,6 @@
     .text
-    .globl _gdt
-startup:
+    .globl _gdt,_start
+_start:
     movl $0x10, %eax
     mov %ax, %ds
     mov %ax, %es
