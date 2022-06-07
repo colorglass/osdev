@@ -14,7 +14,7 @@ setup_pg:
 .clear_mem:
     mov $1024*5, %ecx
     xor %eax, %eax
-    mov $0x20000, %edi
+    mov $0, %edi
     cld;rep;stosl
 .set_dir:
     movl $0x21007, 0x20000
@@ -45,9 +45,9 @@ die:
 int_msg:    .asciz "Unknow interrupt\n"
 
 _gdt:	
-    .quad 0x0000000000000000	/* NULL descriptor */
-	.quad 0x00cf9a0000000fff	/* 1GB upper */
-	.quad 0x00cf920000000fff	/* 1GB upper */
+    .quad 0x0000000000000000
+	.quad 0x00cf9a0000000fff
+	.quad 0x00cf920000000fff
 	.fill 253,8,0	
 
 gdt_descr:
