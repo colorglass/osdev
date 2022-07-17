@@ -7,11 +7,7 @@ int tick = 999;
 
 void timer_callback(registers_t *regs)
 {
-    if (tick-- < 0)
-    {
-        tick += 1000;
-        terminal_writestring("per 1s\n");
-    }
+    //empty
     (void *)regs;
 }
 
