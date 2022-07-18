@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define PMM_MAP_POS 0x30000
+#define PMM_MAP_POS 0x20000
 #define PMM_MAP_RESERVE_LENGTH 0x20000
 
 typedef struct

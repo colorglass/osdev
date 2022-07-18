@@ -2,24 +2,9 @@
     .text
 /* first move bootsector to 0x90000 for the kernel move */
 start:
-	mov	$0x07c0, %ax
-	mov	%ax, %ds
-
     mov %dl, boot_dirver            /* save boot dirver number */
 
-	mov	$0x9000, %ax
-	mov	%ax, %es
-	mov	$256, %cx
-	xor %si, %si
-	xor %di, %di
-	rep
-	movsw
-
-    mov %ax, %cs
-    jmp $go
-go:
-    /* now we are in the 0x90000
-    mov %ax, %cs
+    mov %cs, %ax
     mov %ax, %ds
     mov %ax, %es
     mov %ax, %ss
@@ -53,9 +38,15 @@ load_kernel:
  *  followed with the array of descriptors
  * ====================================================== */
 detect_mem:
-    movl $0, 0x8000
+    push %ds
+    push %es
+    mov $0x8000, %ax
+    mov %ax, %ds
+    mov %ax, %es
+
+    movl $0, 0x0
     xor %ebx, %ebx
-    mov $0x8000+4, %di
+    mov $4, %di
 do_detect:
     mov $0x0000e820, %eax
     mov $0x534d4150, %edx
@@ -63,30 +54,11 @@ do_detect:
     int $0x15
     jc fail
     add $20, %di
-    incl 0x8000
+    incl 0x0
     cmp $0, %ebx
     jnz do_detect
-
-/* for fully using the space, moving kernel to 0x0 when no bios intr needed */
-move_kernel:
-    cli
-    mov $0, %ax
-    mov %ax, %es
-    mov $0x1000, %ax
-    mov %ax, %ds
-    mov $0x8000, %cx
-    xor %si, %si
-    xor %di, %di
-    rep
-    movsw
-    mov %ax, %es
-    add $0x1000, %ax
-    mov %ax, %ds
-    mov $0x8000, %cx
-    xor %si, %si
-    xor %di, %di
-    rep
-    movsw
+    pop %es
+    pop %ds
 
 
 enable_A20:
@@ -142,7 +114,7 @@ enter_protect:
 
     .code32
 enter_kernel:
-    jmp 0
+    jmp 0x10000
 
 boot_dirver:
     .byte 0x0

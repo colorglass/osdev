@@ -2,7 +2,7 @@ GCC = i686-elf-gcc
 GCCFLAGS = -ffreestanding -nostdlib -Iinclude
 GDB = gdb
 
-C_SOURCE = ${wildcard device/*.c cpu/*.c cpu/*.s lib/*.c}
+C_SOURCE = ${wildcard device/*.c cpu/*.c cpu/*.s lib/*.c mm/*.c}
 
 all: build/myos.bin
 
@@ -22,7 +22,7 @@ build/myos.bin: build/bootsect.bin build/kernel.bin
 	dd if=build/kernel.bin of=$@ seek=1
 
 build/bootsect.bin: boot/bootsect.s 
-	$(GCC) $(GCCFLAGS) -Wl,-Ttext=0x0,--oformat=binary  $^ -o $@
+	$(GCC) $(GCCFLAGS) -Wl,-Ttext=0x7c00,--oformat=binary  $^ -o $@
 
 run: build/myos.img
 	qemu-system-i386 -hda $<

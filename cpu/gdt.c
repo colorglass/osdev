@@ -42,8 +42,8 @@ void set_gdt()
 void gdt_init()
 {
     set_gdt_entry(0, 0, 0, 0, 0);
-    set_gdt_entry(1, 0, 0xfffff, AC_RW | AC_EX | AC_DPL_KERN | AC_PR, GDT_GR | GDT_SZ);
-    set_gdt_entry(2, 0, 0xfffff, AC_RW | AC_DPL_KERN | AC_PR, GDT_GR | GDT_SZ);
+    set_gdt_entry(1, 0, 0xfffff, AC_RW | AC_EX | AC_DPL_KERN | AC_PR | AC_RE, GDT_GR | GDT_SZ);
+    set_gdt_entry(2, 0, 0xfffff, AC_RW | AC_DPL_KERN | AC_PR | AC_RE, GDT_GR | GDT_SZ);
 
     set_gdt();
 }
