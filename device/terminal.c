@@ -24,8 +24,7 @@ static uint16_t *terminal_buffer;
 
 static uint8_t end_col[25] = {0};
 
-static inline uint8_t
-vga_entry_color(enum vga_color fg, enum vga_color bg)
+static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
 {
     return fg | bg << 4;
 }
@@ -179,10 +178,6 @@ void terminal_scroll_up()
     {
         end_col[i] = end_col[i + 1];
     }
-}
-
-void scroll_down()
-{
 }
 
 void terminal_scroll_up_line(uint8_t step, uint8_t start, uint8_t end)
