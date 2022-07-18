@@ -1,5 +1,5 @@
 #include <mm.h>
-#include <string.h>
+#include "lib/string.h"
 
 #define PAGE_SIZE 4096
 #define PAGE_TABLE_ENTRYS (PAGE_SIZE >> 2)

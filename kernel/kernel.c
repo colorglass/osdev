@@ -7,13 +7,15 @@
 #include "device/timer.h"
 #include "device/terminal.h"
 #include "device/keyboard.h"
-#include "string.h"
+#include "mm.h"
+#include "lib/string.h"
 
 void kernel_main(void)
 {
 	terminal_initial();
 	gdt_init();
 	interrupt_init();
+	pmm_init();
 	keyboard_init();
 	timer_init(1000);
 

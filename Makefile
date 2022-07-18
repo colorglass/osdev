@@ -28,7 +28,7 @@ run: build/myos.img
 	qemu-system-i386 -hda $<
 
 debug: build/myos.img build/kernel.elf
-	qemu-system-i386 -s -S -hda build/myos.img -m 16M & \
+	qemu-system-i386 -s -S -hda build/myos.img -m 32M & \
 	${GDB} \
 	-ex "target remote localhost:1234" \
 	-ex "symbol-file build/kernel.elf" \

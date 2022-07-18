@@ -1,6 +1,18 @@
-#include <mm.h>
+/**
+ * @file pmm.c 
+ * @author colorglass (colorglass4@outlook.com)
+ * @brief do the simple physical memory managent.
+ * @todo more test, mutex 
+ * @version 0.1
+ * @date 2022-07-18
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
 
-#include <string.h>
+#include "mm.h"
+
+#include "lib/string.h"
 
 #define MM_TYPE_AVAILABLE 0x1
 #define MM_TYPE_RESERVED 0x2
@@ -8,14 +20,14 @@
 #define MM_TYPE_ACPI_NVS 0x4
 
 #define LOW_MEMORY_END 0x100000
-#define PAGE_FRAME(addr) (addr >> 12)
+#define PAGE_FRAME(addr) ((addr) >> 12)
 #define PAGE_FRAMES(addr) PAGE_FRAME(addr)
 
-#define MAP_INDEX(bit) (bit / 32)
-#define MAP_OFFSET(bit) (bit % 32)
-#define MAP_BIT(addr) PAGE_FRAME(addr - LOW_MEMORY_END)
+#define MAP_INDEX(bit) ((bit) / 32)
+#define MAP_OFFSET(bit) ((bit) % 32)
+#define MAP_BIT(addr) PAGE_FRAME((addr)-LOW_MEMORY_END)
 
-#define FRAME_ADDR(frame) (frame << 12)
+#define FRAME_ADDR(frame) ((frame) << 12)
 #define BLOCK_ADDR(block) (FRAME_ADDR(block) + LOW_MEMORY_END)
 
 #define FREE 0
@@ -30,10 +42,9 @@ typedef struct
 
 typedef struct
 {
-    uint32_t entry_size;
+    uint32_t *entry_size;
     mm_graphy_entry_t *mm_list;
 } mm_grapht_t;
-
 
 void pmm_map_set(uint32_t bit)
 {
@@ -110,6 +121,7 @@ uint32_t p_malloc()
     if (pmm_map.free_block > 0)
     {
         p_addr = BLOCK_ADDR(pmm_map_first_free());
+        pmm_map_set(MAP_BIT(p_addr));
         pmm_map.free_block--;
     }
     return p_addr;
@@ -126,30 +138,31 @@ void p_free(uint32_t p_addr)
 
 void pmm_init()
 {
-    int used_block = 0;
+    uint32_t memory_end = 0;
 
     pmm_map.map = (uint32_t *)(PMM_MAP_POS);
-    memset(pmm_map.map, 0, PMM_MAP_RESERVE_LENGTH);
+    memset(pmm_map.map, 0xff, PMM_MAP_RESERVE_LENGTH);
     pmm_map.free_block = 0;
 
-    mm_grapht_t *mm_graphy = (mm_grapht_t *)(0x8000);
-    for (int i = 0; i < mm_graphy->entry_size; i++)
+    mm_grapht_t mm_graphy = {
+        .entry_size = (uint32_t *)0x80000,
+        .mm_list = (mm_graphy_entry_t *)0x80004,
+    };
+    for (int i = 0; i < *mm_graphy.entry_size; i++)
     {
-        if (mm_graphy->mm_list[i].base < LOW_MEMORY_END)
+
+        if (mm_graphy.mm_list[i].base < LOW_MEMORY_END)
         {
             continue;
         }
 
-        pmm_map.free_block += PAGE_FRAMES((uint32_t)mm_graphy->mm_list[i].length);
-        if (mm_graphy->mm_list[i].type != MM_TYPE_AVAILABLE)
+        if (mm_graphy.mm_list[i].type == MM_TYPE_AVAILABLE)
         {
-            pmm_map_set_range(MAP_BIT(mm_graphy->mm_list[i].base),
-                              MAP_BIT(mm_graphy->mm_list[i].base + mm_graphy->mm_list[i].length));
-            used_block += PAGE_FRAMES((uint32_t)mm_graphy->mm_list[i].length);
+            memory_end = mm_graphy.mm_list[i].base + mm_graphy.mm_list[i].length;
+            pmm_map_unset_range(MAP_BIT(mm_graphy.mm_list[i].base), MAP_BIT(memory_end));
+            pmm_map.free_block += PAGE_FRAMES((uint32_t)mm_graphy.mm_list[i].length);
         }
     }
 
-    pmm_map.size = MAP_INDEX(pmm_map.free_block) + 1;
-    pmm_map_set_range(pmm_map.free_block, pmm_map.size * 32);
-    pmm_map.free_block -= used_block;
+    pmm_map.size = MAP_INDEX(PAGE_FRAMES(memory_end)) + 1;
 }

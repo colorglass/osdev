@@ -1,7 +1,7 @@
 #include "cpu/interrupt.h"
 #include "device/terminal.h"
 #include "sys/io.h"
-#include "string.h"
+#include "lib/string.h"
 
 typedef struct
 {
