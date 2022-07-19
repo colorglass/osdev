@@ -10,7 +10,7 @@ typedef struct
 {
     uint32_t *map;
     uint32_t size;
-    uint32_t free_block;
+    uint32_t free_frame;
 } pmm_map_t;
 
 static pmm_map_t pmm_map;

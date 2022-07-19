@@ -1,13 +1,13 @@
 /**
- * @file pmm.c 
+ * @file pmm.c
  * @author colorglass (colorglass4@outlook.com)
  * @brief do the simple physical memory managent.
- * @todo more test, mutex 
+ * @todo more test, mutex ,faster search
  * @version 0.1
  * @date 2022-07-18
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include "mm.h"
@@ -19,16 +19,13 @@
 #define MM_TYPE_ACPI_RECLAIM 0x3
 #define MM_TYPE_ACPI_NVS 0x4
 
-#define LOW_MEMORY_END 0x100000
-#define PAGE_FRAME(addr) ((addr) >> 12)
-#define PAGE_FRAMES(addr) PAGE_FRAME(addr)
+#define FRAME_INDEX(frame) ((frame) >> 12)
+#define INDEX_FRAME(frame) ((frame) << 12)
+#define FRAME_NUMS(frame) FRAME_INDEX(frame)
 
 #define MAP_INDEX(bit) ((bit) / 32)
 #define MAP_OFFSET(bit) ((bit) % 32)
-#define MAP_BIT(addr) PAGE_FRAME((addr)-LOW_MEMORY_END)
-
-#define FRAME_ADDR(frame) ((frame) << 12)
-#define BLOCK_ADDR(block) (FRAME_ADDR(block) + LOW_MEMORY_END)
+#define MAP_BIT(addr) FRAME_INDEX(addr)
 
 #define FREE 0
 #define USE 1
@@ -45,6 +42,9 @@ typedef struct
     uint32_t *entry_size;
     mm_graphy_entry_t *mm_list;
 } mm_grapht_t;
+
+/* sikp the kernel reserved space */
+static uint32_t recent_req_map_index = MAP_INDEX(PMM_MAP_POS);
 
 void pmm_map_set(uint32_t bit)
 {
@@ -97,7 +97,7 @@ uint8_t pmm_map_test(uint32_t bit)
 
 uint32_t pmm_map_first_free()
 {
-    for (int i = 0; i < pmm_map.size; i++)
+    for (int i = recent_req_map_index; i < pmm_map.size; i++)
     {
         if (pmm_map.map[i] != 0xffffffff)
         {
@@ -106,6 +106,22 @@ uint32_t pmm_map_first_free()
                 int bit = 1 << j;
                 if (!(pmm_map.map[i] & bit))
                 {
+                    recent_req_map_index = i;
+                    return i * 32 + j;
+                }
+            }
+        }
+    }
+    for (int i = MAP_INDEX(PMM_MAP_POS); i < recent_req_map_index; i++)
+    {
+        if (pmm_map.map[i] != 0xffffffff)
+        {
+            for (int j = 0; j < 32; j++)
+            {
+                int bit = 1 << j;
+                if (!(pmm_map.map[i] & bit))
+                {
+                    recent_req_map_index = i;
                     return i * 32 + j;
                 }
             }
@@ -118,11 +134,11 @@ uint32_t pmm_map_first_free()
 uint32_t p_malloc()
 {
     uint32_t p_addr = 0;
-    if (pmm_map.free_block > 0)
+    if (pmm_map.free_frame > 0)
     {
-        p_addr = BLOCK_ADDR(pmm_map_first_free());
+        p_addr = INDEX_FRAME(pmm_map_first_free());
         pmm_map_set(MAP_BIT(p_addr));
-        pmm_map.free_block--;
+        pmm_map.free_frame--;
     }
     return p_addr;
 }
@@ -132,7 +148,7 @@ void p_free(uint32_t p_addr)
     if (pmm_map_test(MAP_BIT(p_addr)) == USE)
     {
         pmm_map_unset(MAP_BIT(p_addr));
-        pmm_map.free_block++;
+        pmm_map.free_frame++;
     }
 }
 
@@ -142,7 +158,7 @@ void pmm_init()
 
     pmm_map.map = (uint32_t *)(PMM_MAP_POS);
     memset(pmm_map.map, 0xff, PMM_MAP_RESERVE_LENGTH);
-    pmm_map.free_block = 0;
+    pmm_map.free_frame = 0;
 
     mm_grapht_t mm_graphy = {
         .entry_size = (uint32_t *)0x80000,
@@ -150,19 +166,14 @@ void pmm_init()
     };
     for (int i = 0; i < *mm_graphy.entry_size; i++)
     {
-
-        if (mm_graphy.mm_list[i].base < LOW_MEMORY_END)
-        {
-            continue;
-        }
-
         if (mm_graphy.mm_list[i].type == MM_TYPE_AVAILABLE)
         {
             memory_end = mm_graphy.mm_list[i].base + mm_graphy.mm_list[i].length;
             pmm_map_unset_range(MAP_BIT(mm_graphy.mm_list[i].base), MAP_BIT(memory_end));
-            pmm_map.free_block += PAGE_FRAMES((uint32_t)mm_graphy.mm_list[i].length);
+            pmm_map.free_frame += FRAME_NUMS((uint32_t)mm_graphy.mm_list[i].length);
         }
     }
 
-    pmm_map.size = MAP_INDEX(PAGE_FRAMES(memory_end)) + 1;
+    pmm_map.size = MAP_INDEX(FRAME_INDEX(memory_end)) + 1;
+    pmm_map_set_range(MAP_BIT(0), MAP_BIT(PMM_MAP_POS + pmm_map.size * 32) + 1);
 }
