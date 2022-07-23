@@ -16,6 +16,7 @@ void kernel_main(void)
 	gdt_init();
 	interrupt_init();
 	pmm_init();
+	vmm_init();
 	keyboard_init();
 	timer_init(1000);
 

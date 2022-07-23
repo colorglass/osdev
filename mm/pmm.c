@@ -14,18 +14,21 @@
 
 #include "lib/string.h"
 
+#define PMM_MAP_POS 0x20000
+#define PMM_MAP_RESERVE_LENGTH 0x20000
+
 #define MM_TYPE_AVAILABLE 0x1
 #define MM_TYPE_RESERVED 0x2
 #define MM_TYPE_ACPI_RECLAIM 0x3
 #define MM_TYPE_ACPI_NVS 0x4
 
-#define FRAME_INDEX(frame) ((frame) >> 12)
-#define INDEX_FRAME(frame) ((frame) << 12)
-#define FRAME_NUMS(frame) FRAME_INDEX(frame)
+#define FRAME_NUMBER(frame) ((frame) >> 12)
+#define NUMBER_FRAME(frame) ((frame) << 12)
+#define FRAME_NR(frame) FRAME_NUMBER(frame)
 
 #define MAP_INDEX(bit) ((bit) / 32)
 #define MAP_OFFSET(bit) ((bit) % 32)
-#define MAP_BIT(addr) FRAME_INDEX(addr)
+#define MAP_BIT(addr) FRAME_NUMBER(addr)
 
 #define FREE 0
 #define USE 1
@@ -39,12 +42,21 @@ typedef struct
 
 typedef struct
 {
-    uint32_t *entry_size;
+    uint32_t *entry_nr;
     mm_graphy_entry_t *mm_list;
 } mm_grapht_t;
 
+typedef struct
+{
+    uint32_t *map;
+    uint32_t map_nr;
+    uint32_t free_frame;
+} pmm_map_t;
+
+static pmm_map_t pmm_map;
+
 /* sikp the kernel reserved space */
-static uint32_t recent_req_map_index = MAP_INDEX(PMM_MAP_POS);
+static uint32_t recent_req_map_index = MAP_INDEX(MAP_BIT(PMM_MAP_POS));
 
 void pmm_map_set(uint32_t bit)
 {
@@ -97,7 +109,7 @@ uint8_t pmm_map_test(uint32_t bit)
 
 uint32_t pmm_map_first_free()
 {
-    for (int i = recent_req_map_index; i < pmm_map.size; i++)
+    for (int i = recent_req_map_index; i < pmm_map.map_nr; i++)
     {
         if (pmm_map.map[i] != 0xffffffff)
         {
@@ -136,7 +148,7 @@ uint32_t p_malloc()
     uint32_t p_addr = 0;
     if (pmm_map.free_frame > 0)
     {
-        p_addr = INDEX_FRAME(pmm_map_first_free());
+        p_addr = NUMBER_FRAME(pmm_map_first_free());
         pmm_map_set(MAP_BIT(p_addr));
         pmm_map.free_frame--;
     }
@@ -161,19 +173,19 @@ void pmm_init()
     pmm_map.free_frame = 0;
 
     mm_grapht_t mm_graphy = {
-        .entry_size = (uint32_t *)0x80000,
+        .entry_nr = (uint32_t *)0x80000,
         .mm_list = (mm_graphy_entry_t *)0x80004,
     };
-    for (int i = 0; i < *mm_graphy.entry_size; i++)
+    for (int i = 0; i < *mm_graphy.entry_nr; i++)
     {
         if (mm_graphy.mm_list[i].type == MM_TYPE_AVAILABLE)
         {
             memory_end = mm_graphy.mm_list[i].base + mm_graphy.mm_list[i].length;
             pmm_map_unset_range(MAP_BIT(mm_graphy.mm_list[i].base), MAP_BIT(memory_end));
-            pmm_map.free_frame += FRAME_NUMS((uint32_t)mm_graphy.mm_list[i].length);
+            pmm_map.free_frame += FRAME_NR((uint32_t)mm_graphy.mm_list[i].length);
         }
     }
 
-    pmm_map.size = MAP_INDEX(FRAME_INDEX(memory_end)) + 1;
-    pmm_map_set_range(MAP_BIT(0), MAP_BIT(PMM_MAP_POS + pmm_map.size * 32) + 1);
+    pmm_map.map_nr = MAP_INDEX(FRAME_NUMBER(memory_end)) + 1;
+    pmm_map_set_range(MAP_BIT(0), MAP_BIT(PMM_MAP_POS + pmm_map.map_nr * 32) + 1);
 }
